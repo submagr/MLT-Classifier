@@ -4,16 +4,18 @@ from random import shuffle
 import sys
 import pickle
 import scipy.io
+from sklearn.externals import joblib
 
 CONST_LABELS = 5
-CONST_NUMBER_TRAIN_IMG =  35 
-CONST_NUMBER_TEST_IMG = 10 
+CONST_NUMBER_TRAIN_IMG =  3500
+CONST_NUMBER_TEST_IMG = 1000 
 CONST_X_FILE = '../../feature-extractor/caffe-feat/mlt_allX.txt'
 CONST_y_FILE = '../../feature-extractor/caffe-feat/mlt_allimg_labels.txt'
 CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
 CONST_C=[100]
 CONST_KERNEL=['linear']
-CONST_FEATURE='SIFT'
+CONST_FEATURE='CAFFE'
+CONST_MODEL_DUMP = 'trained_model/'+CONST_FEATURE+'/ovr.pkl'
 #C=[0.1,1,10,100,1000,10000,100000,1000000]
 #kernel=['linear', 'poly', 'rbf', 'sigmoid']
 
@@ -85,10 +87,6 @@ def get_data():
 	test_X, test_y = double_shuffle(test_X, test_y)
 	return train_X, train_y, test_X, test_y
 
-def save_clf(clf,filename):
-	s = pickle.dumps(clf)
-	with open(filename,'wb') as f:
-		f.write(s) 
 
 def get_binary_data(X,y,pos_label):
 	X_extract=[]
@@ -119,8 +117,8 @@ for c in CONST_C:
 			ovr_classifiers[j] = classifier
 			confidence.append(classifier.decision_function(test_X))
 
-		print "		Dumping model in file : ", 'ovr_classifiers_'+CONST_FEATURE+'.dump'
-		save_clf(ovr_classifiers, 'ovr_classifiers_'+CONST_FEATURE+'.dump')
+		print "		Dumping model in file : ",CONST_MODEL_DUMP 
+		joblib.dump(ovr_classifiers,CONST_MODEL_DUMP)
 	    #report result
         predictions=[]
         print "		Testing started"
