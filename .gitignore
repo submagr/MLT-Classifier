@@ -3,3 +3,5 @@ data/
 *.txt
 *.mat
 temp*
+*.swp
+classifier/one-vs-rest-svm/trained_model/
