@@ -1,0 +1,4 @@
+data/
+classifier/one-vs-rest-svm/ovr_classifiers.dump
+feature-extractor/caffe-feat/mlt_allX.txt
+feature-extractor/caffe-feat/mlt_allimg_labels.txt
