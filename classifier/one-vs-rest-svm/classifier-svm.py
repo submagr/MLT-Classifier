@@ -6,9 +6,9 @@ import pickle
 import scipy.io
 from sklearn.externals import joblib
 
-CONST_LABELS = 5
-CONST_NUMBER_TRAIN_IMG =  3500
-CONST_NUMBER_TEST_IMG = 1000 
+CONST_LABELS = 6 
+CONST_NUMBER_TRAIN_IMG =  35
+CONST_NUMBER_TEST_IMG = 10 
 CONST_X_FILE = '../../feature-extractor/caffe-feat/mlt_allX.txt'
 CONST_y_FILE = '../../feature-extractor/caffe-feat/mlt_allimg_labels.txt'
 CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
@@ -58,6 +58,7 @@ def load_features():
 
 def get_data():
 	X,y = load_features()
+	print y[0:200]
 	data = {}
 	for i in range(0,len(X)):
 		if y[i] in data : 
@@ -77,11 +78,20 @@ def get_data():
 
 	for i in range(1,CONST_LABELS+1):
 		for j in range(0,CONST_NUMBER_TRAIN_IMG/CONST_LABELS):
-			train_X = train_X + [data[i][j]]
-			train_y = train_y + [i]
+			try : 
+				train_X = train_X + [data[i][j]]
+				train_y = train_y + [i]
+			except Exception as e:
+				print 'Insufficient Train Images for label : ', j
+				break
 		for j in range(CONST_NUMBER_TRAIN_IMG/CONST_LABELS, (CONST_NUMBER_TRAIN_IMG+CONST_NUMBER_TEST_IMG)/CONST_LABELS):
-			test_X = test_X + [data[i][j]]
-			test_y = test_y + [i]
+			try:	
+				test_X = test_X + [data[i][j]]
+				test_y = test_y + [i]
+			except Exception as e:
+				print 'Insufficient Test Images for label : ', j
+				break
+
 
 	train_X, train_y = double_shuffle(train_X, train_y)
 	test_X, test_y = double_shuffle(test_X, test_y)
