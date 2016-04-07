@@ -1,4 +1,4 @@
-imgSets = [imageSet('/home/cse/UGP/data_mlt/Rickshaw'),imageSet('/home/cse/UGP/data_mlt/Autorickshaw'),imageSet('/home/cse/UGP/data_mlt/Motorcycle'),imageSet('/home/cse/UGP/data_mlt/Bicycle'),imageSet('/home/cse/UGP/data_mlt/Person')]
+imgSets = [imageSet('/home/cse/MLT-Classifier/data/Rickshaw'),imageSet('/home/cse/MLT-Classifier/data/Autorickshaw'),imageSet('/home/cse/MLT-Classifier/data/Motorcycle'),imageSet('/home/cse/MLT-Classifier/data/Bicycle'),imageSet('/home/cse/MLT-Classifier/data/Person')]
 { imgSets.Description } % display all labels on one line
 [imgSets.Count]         % show the corresponding count of images
 minSetCount = min([imgSets.Count]); % determine the smallest amount of images in a category
@@ -11,7 +11,8 @@ minSetCount = min([imgSets.Count]); % determine the smallest amount of images in
 
 run('VLFEATROOT/toolbox/vl_setup')
 
-y = []
+disp('Generating SIFT Features ')
+y = [];
 for i = 1:5
    i
    for j = 1:imgSets(i).Count;
@@ -37,6 +38,7 @@ for i = 1:5
     end
 end
 
+disp('Clustering')
 numClusters = 10 ;
 X = single(X);
 [centers, assignments] = vl_kmeans(X, numClusters);
@@ -55,6 +57,7 @@ for i = 1:length(X_img)
     end
 end    
 
+disp('Generating Visual Word Representations')
 sift_features = []
 y = []
 for i = 1:length(raw_img)
@@ -66,7 +69,8 @@ for i = 1:length(raw_img)
     y = [y ; raw_img(i).label];
 end
 
-save('feat_sift_vlfeat_mlt.mat','sift_features','y')
+disp('Saving Features')
+save('/home/cse/MLT-Classifier/feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat','sift_features','y')
 
 %{
 For using these features in python 
@@ -76,4 +80,4 @@ mat = scipy.io.loadmat('feat_sift_vlfeat_mlt.mat')
 X = mat['sift_features']
 y = mat['y']
 
-}%
+%}
