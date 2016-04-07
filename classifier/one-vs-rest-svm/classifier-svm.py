@@ -6,14 +6,14 @@ import pickle
 import scipy.io
 
 CONST_LABELS = 5
-CONST_NUMBER_TRAIN_IMG =  3500 
-CONST_NUMBER_TEST_IMG = 1000 
+CONST_NUMBER_TRAIN_IMG =  35 
+CONST_NUMBER_TEST_IMG = 10 
 CONST_X_FILE = '../../feature-extractor/caffe-feat/mlt_allX.txt'
 CONST_y_FILE = '../../feature-extractor/caffe-feat/mlt_allimg_labels.txt'
 CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
 CONST_C=[100]
 CONST_KERNEL=['linear']
-CONST_FEATURE='CAFFE'
+CONST_FEATURE='SIFT'
 #C=[0.1,1,10,100,1000,10000,100000,1000000]
 #kernel=['linear', 'poly', 'rbf', 'sigmoid']
 
@@ -90,6 +90,18 @@ def save_clf(clf,filename):
 	with open(filename,'wb') as f:
 		f.write(s) 
 
+def get_binary_data(X,y,pos_label):
+	X_extract=[]
+	y_extract=[]
+	for l in range(0,len(X)):
+		if train_y[l]==pos_label:
+			X_extract.append(train_X[l])
+			y_extract.append(1)
+		else:
+			X_extract.append(train_X[l])
+			y_extract.append(-1)
+	return X_extract, y_extract
+
 train_X, train_y, test_X, test_y = get_data()
 for c in CONST_C:
 	for knl in CONST_KERNEL:
@@ -100,15 +112,7 @@ for c in CONST_C:
 		ovr_classifiers = {} 
 		for j in range(1,CONST_LABELS+1):
 			print "		Training One vs rest for label :", j
-			X_extract=[]
-			y_extract=[]
-			for l in range(0,len(train_X)):
-				if train_y[l]==j:
-					X_extract.append(train_X[l])
-					y_extract.append(1)
-				else:
-					X_extract.append(train_X[l])
-					y_extract.append(-1)
+			X_extract, y_extract =  get_binary_data(train_X, train_y, j)
 			classifier=SVC(C=c,kernel=knl)
 			classifier.fit(X_extract, y_extract)	
 			print "		Model trained for label :", j
