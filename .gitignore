@@ -5,4 +5,5 @@ data/
 temp*
 *.swp
 *.bak
+*.swo
 classifier/one-vs-rest-svm/trained_model/
