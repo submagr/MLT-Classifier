@@ -5,7 +5,7 @@ echo "python gen_caffe_input.py : Generating address of images for extracting ca
 python gen_caffe_input.py
 echo "cd to caffe directory..."
 cd ~/caffe/examples 
-echo "Generating caffe features and dumping them in a file..."
+echo "Generating caffe features and dumping them in video_X.txt..."
 python mlt_caffe.py -i ~/MLT-Classifier/classifier/one-vs-rest-svm/Predictor/video_imgs.txt -o ~/MLT-Classifier/classifier/one-vs-rest-svm/Predictor/video_X.txt
 echo "directory back to Predictor..."
 cd ~/MLT-Classifier/classifier/one-vs-rest-svm/Predictor/ 

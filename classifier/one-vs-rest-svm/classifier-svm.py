@@ -13,12 +13,15 @@ CONST_NUMBER_TEST_IMG = 10
 CONST_X_FILE = '../../feature-extractor/caffe-feat/mlt_allX.txt'
 CONST_y_FILE = '../../feature-extractor/caffe-feat/mlt_allimg_labels.txt'
 CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
-CONST_C=[0.1,1,10,100,1000,10000,100000,1000000]
-CONST_KERNEL=['linear', 'poly', 'rbf', 'sigmoid']
-CONST_FEATURE='CAFFE'
+CONST_C=[10]
+CONST_KERNEL=['rbf']
+CONST_FEATURE='SIFT'
 CONST_MODEL_DUMP = 'trained_model/'+CONST_FEATURE+'/ovr.pkl'
+CONST_MAP = {2:"Autorickshaw",1:"Bicycle",6:"Car",4:"Motorcycle",5:"Person",3:"Rickshaw"}
+
 #C=[0.1,1,10,100,1000,10000,100000,1000000]
 #kernel=['linear', 'poly', 'rbf', 'sigmoid']
+# Tuned Parameters : C = 10, kernel = rbf
 
 def double_shuffle(a,b):
     an = []
@@ -123,6 +126,15 @@ def get_binary_data(X,y,pos_label):
 			y_extract.append(-1)
 	return X_extract, y_extract
 
+def print_results(result):
+    true = 0
+    false = 0
+    for label in result:
+        true += result[label]['true']
+        false += result[label]['false']
+        print '         Accuracy for Label : ', label,' is ', result[label]['true']*1.0/(result[label]['true']+result[label]['false'])
+    print '     Overall Accuracy = ', true*1.0/(true+false)
+        
 train_X, train_y, test_X, test_y = get_data()
 for c in CONST_C:
 	for knl in CONST_KERNEL:
@@ -139,6 +151,8 @@ for c in CONST_C:
 			print "		Model trained for label :", j
 			ovr_classifiers[j] = classifier
 			confidence.append(classifier.decision_function(test_X))
+                print "         Dumping model in file : ",CONST_MODEL_DUMP 
+                joblib.dump(ovr_classifiers,CONST_MODEL_DUMP)
                 predictions=[]
                 print "		Testing started"
                 for j in range(0,len(test_X)):
@@ -148,11 +162,20 @@ for c in CONST_C:
                                         if confidence[k][j]>score:
                                                 predictions[j]=k+1
                                                 score=confidence[k][j]
+                detailed_predictions = {}
                 for j in range(0,len(predictions)):
                                 if predictions[j]!=test_y[j]:
-                                        false_predict+=1
+                                        if CONST_MAP[test_y[j]] in detailed_predictions : 
+                                            detailed_predictions[CONST_MAP[test_y[j]]]['false']+=1
+                                        else : 
+                                            detailed_predictions[CONST_MAP[test_y[j]]] = {}
+                                            detailed_predictions[CONST_MAP[test_y[j]]]['true'] = 0 
+                                            detailed_predictions[CONST_MAP[test_y[j]]]['false'] = 1 
                                 else:
-                                        true_predict+=1
-                print true_predict, true_predict+false_predict
-                accuracy=(true_predict)*1.0/(true_predict+false_predict)
-                print ('Accuracy = %f'%accuracy)
+                                        if CONST_MAP[test_y[j]] in detailed_predictions : 
+                                            detailed_predictions[CONST_MAP[test_y[j]]]['true']+=1
+                                        else : 
+                                            detailed_predictions[CONST_MAP[test_y[j]]] = {}
+                                            detailed_predictions[CONST_MAP[test_y[j]]]['true'] = 1 
+                                            detailed_predictions[CONST_MAP[test_y[j]]]['false'] = 0 
+                print_results(detailed_predictions)

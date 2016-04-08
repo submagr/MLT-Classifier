@@ -3,7 +3,7 @@ import scipy.io
 from random import shuffle
 import os
 
-CONST_LABELS = 5
+CONST_LABELS = 6 
 CONST_NUMBER_TRAIN_IMG =  50 
 CONST_NUMBER_TEST_IMG = 50 
 CONST_X_FILE = 'video_X.txt'
@@ -39,6 +39,7 @@ predictions=[]
 confidence = []
 print "Making Binary Predictions"
 for i in range(1,len(ovr_classifiers)+1):
+        print i
 	confidence.append(ovr_classifiers[i].decision_function(X))
 
 print "Overall Predictions "
@@ -51,11 +52,13 @@ for j in range(0,len(X)):
 			score=confidence[k][j]
 
 predicted = {}
+print "Making predicted dictionary"
 imgs = [line.rstrip('\n') for line in open('video_imgs.txt')]
 for i in range(0,len(imgs)):
 	imgs[i] = os.path.basename(imgs[i])
 	predicted[imgs[i]] = CONST_MAP[predictions[i]]
 
+print "Dumping predicted images to predictions.dump"
 joblib.dump(predicted,'predictions.dump')
 
 # import subprocess
