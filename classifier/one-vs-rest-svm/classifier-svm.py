@@ -6,15 +6,15 @@ import pickle
 import scipy.io
 from sklearn.externals import joblib
 
-CONST_LABELS = 7 
-CONST_USE_ENTIRE_DATA = 1
+CONST_LABELS = 6 
+CONST_USE_ENTIRE_DATA = 1 
 CONST_NUMBER_TRAIN_IMG =  35
 CONST_NUMBER_TEST_IMG = 10 
 CONST_X_FILE = '../../feature-extractor/caffe-feat/mlt_allX.txt'
 CONST_y_FILE = '../../feature-extractor/caffe-feat/mlt_allimg_labels.txt'
 CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
-CONST_C=[100]
-CONST_KERNEL=['linear']
+CONST_C=[0.1,1,10,100,1000,10000,100000,1000000]
+CONST_KERNEL=['linear', 'poly', 'rbf', 'sigmoid']
 CONST_FEATURE='CAFFE'
 CONST_MODEL_DUMP = 'trained_model/'+CONST_FEATURE+'/ovr.pkl'
 #C=[0.1,1,10,100,1000,10000,100000,1000000]
@@ -92,7 +92,6 @@ def trim_data(data):
 
 def get_data():
 	X,y = load_features()
-	print y[0:200]
 	data = {}
 	for i in range(0,len(X)):
 		if y[i] in data : 
@@ -127,7 +126,7 @@ def get_binary_data(X,y,pos_label):
 train_X, train_y, test_X, test_y = get_data()
 for c in CONST_C:
 	for knl in CONST_KERNEL:
-		print "Training for Kernel : ", knl, " with C : ",CONST_C 
+		print "Training for Kernel : ", knl, " with C : ",c
 		true_predict=0
 		false_predict=0
 		confidence=[]
@@ -140,24 +139,20 @@ for c in CONST_C:
 			print "		Model trained for label :", j
 			ovr_classifiers[j] = classifier
 			confidence.append(classifier.decision_function(test_X))
-
-		print "		Dumping model in file : ",CONST_MODEL_DUMP 
-		joblib.dump(ovr_classifiers,CONST_MODEL_DUMP)
-	    #report result
-        predictions=[]
-        print "		Testing started"
-        for j in range(0,len(test_X)):
-			predictions.append(-1)
-			score=-999999
-			for k in range(0,CONST_LABELS):
-				if confidence[k][j]>score:
-					predictions[j]=k+1
-					score=confidence[k][j]
-        for j in range(0,len(predictions)):
-			if predictions[j]!=test_y[j]:
-				false_predict+=1
-			else:
-				true_predict+=1
-        print true_predict, true_predict+false_predict
-        accuracy=(true_predict)*1.0/(true_predict+false_predict)
-        print ('Accuracy = %f'%accuracy)
+                predictions=[]
+                print "		Testing started"
+                for j in range(0,len(test_X)):
+                                predictions.append(-1)
+                                score=-999999
+                                for k in range(0,CONST_LABELS):
+                                        if confidence[k][j]>score:
+                                                predictions[j]=k+1
+                                                score=confidence[k][j]
+                for j in range(0,len(predictions)):
+                                if predictions[j]!=test_y[j]:
+                                        false_predict+=1
+                                else:
+                                        true_predict+=1
+                print true_predict, true_predict+false_predict
+                accuracy=(true_predict)*1.0/(true_predict+false_predict)
+                print ('Accuracy = %f'%accuracy)

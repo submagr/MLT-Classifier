@@ -13,7 +13,7 @@ run('VLFEATROOT/toolbox/vl_setup')
 
 disp('Generating SIFT Features ')
 y = [];
-for i = 1:5
+for i = 1:6
    i
    for j = 1:imgSets(i).Count;
         I_img.label = i ;
