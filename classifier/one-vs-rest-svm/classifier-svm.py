@@ -6,22 +6,31 @@ import pickle
 import scipy.io
 from sklearn.externals import joblib
 
-CONST_LABELS = 6 
+CONST_DATA = 'FINE' 
 CONST_USE_ENTIRE_DATA = 1 
 CONST_NUMBER_TRAIN_IMG =  35
 CONST_NUMBER_TEST_IMG = 10 
-CONST_X_FILE = '../../feature-extractor/caffe-feat/mlt_allX.txt'
-CONST_y_FILE = '../../feature-extractor/caffe-feat/mlt_allimg_labels.txt'
-CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
 CONST_C=[10]
 CONST_KERNEL=['rbf']
-CONST_FEATURE='SIFT'
-CONST_MODEL_DUMP = 'trained_model/'+CONST_FEATURE+'/ovr.pkl'
-CONST_MAP = {2:"Autorickshaw",1:"Bicycle",6:"Car",4:"Motorcycle",5:"Person",3:"Rickshaw"}
+CONST_FEATURE='CAFFE'
+CONST_MODEL_DUMP = 'trained_model/'+CONST_FEATURE+'_'+CONST_DATA+'/ovr.pkl'
+
+if CONST_DATA == 'FINE':
+    CONST_X_FILE = '../../feature-extractor/caffe-feat/fine_allX.txt'
+    CONST_y_FILE = '../../feature-extractor/caffe-feat/fine_allimg_labels.txt'
+    CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
+    CONST_LABELS = 6 
+    CONST_MAP = {2:"Autorickshaw",1:"Bicycle",6:"Car",4:"Motorcycle",5:"Person",3:"Rickshaw"}
+else : 
+    CONST_X_FILE = '../../feature-extractor/caffe-feat/coarse_allX.txt'
+    CONST_y_FILE = '../../feature-extractor/caffe-feat/coarse_allimg_labels.txt'
+    CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
+    CONST_LABELS = 4 
+    CONST_MAP = {1:"Four-Wheeler",2:"Two-Wheeler",3:"Pedestritian",4:"Three-Wheeler"}
 
 #C=[0.1,1,10,100,1000,10000,100000,1000000]
 #kernel=['linear', 'poly', 'rbf', 'sigmoid']
-# Tuned Parameters : C = 10, kernel = rbf
+#Tuned Parameters : C = 10, kernel = rbf
 
 def double_shuffle(a,b):
     an = []

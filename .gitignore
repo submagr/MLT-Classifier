@@ -1,4 +1,5 @@
 data/
+temp/
 *.dump
 *.txt
 *.mat
