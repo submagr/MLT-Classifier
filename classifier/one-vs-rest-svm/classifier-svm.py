@@ -115,7 +115,7 @@ def get_data():
 
 	##Temp
 	for i in range(1,len(data)+1):
-		print "data(",i,") = ", len(data[i])
+		print "Number of ",CONST_MAP[i]," = ", len(data[i])
 
 	train_X, train_y, test_X, test_y = trim_data(data)
 	train_X, train_y = double_shuffle(train_X, train_y)
