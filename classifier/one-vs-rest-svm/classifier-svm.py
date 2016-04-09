@@ -10,8 +10,7 @@ CONST_DATA = 'FINE'
 CONST_USE_ENTIRE_DATA = 1 
 CONST_NUMBER_TRAIN_IMG =  35
 CONST_NUMBER_TEST_IMG = 10 
-CONST_C=[10]
-CONST_KERNEL=['rbf']
+CONST_IS_TUNE = 0 
 CONST_FEATURE='CAFFE'
 CONST_MODEL_DUMP = 'trained_model/'+CONST_FEATURE+'_'+CONST_DATA+'/ovr.pkl'
 
@@ -21,16 +20,25 @@ if CONST_DATA == 'FINE':
     CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
     CONST_LABELS = 6 
     CONST_MAP = {2:"Autorickshaw",1:"Bicycle",6:"Car",4:"Motorcycle",5:"Person",3:"Rickshaw"}
+    # Use Tuned Parameters for fine : C = 10, kernel = rbf
+    CONST_C=[10]
+    CONST_KERNEL = ['rbf']
 else : 
     CONST_X_FILE = '../../feature-extractor/caffe-feat/coarse_allX.txt'
     CONST_y_FILE = '../../feature-extractor/caffe-feat/coarse_allimg_labels.txt'
     CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
     CONST_LABELS = 4 
     CONST_MAP = {1:"Four-Wheeler",2:"Two-Wheeler",3:"Pedestritian",4:"Three-Wheeler"}
+    # Use Tuned Parameters for coarse : C = 10, kernel = poly 
+    CONST_C=[10]
+    CONST_KERNEL = ['poly']
+
+if CONST_IS_TUNE == 1 : 
+    CONST_C=[0.1,1,10,100,1000,10000,100000,1000000]
+    CONST_KERNEL = ['linear', 'poly', 'rbf', 'sigmoid']
 
 #C=[0.1,1,10,100,1000,10000,100000,1000000]
 #kernel=['linear', 'poly', 'rbf', 'sigmoid']
-#Tuned Parameters : C = 10, kernel = rbf
 
 def double_shuffle(a,b):
     an = []
@@ -143,21 +151,24 @@ def print_results(result):
         false += result[label]['false']
         print '         Accuracy for Label : ', label,' is ', result[label]['true']*1.0/(result[label]['true']+result[label]['false'])
     print '     Overall Accuracy = ', true*1.0/(true+false)
+    return true*1.0/(true+false)
         
 train_X, train_y, test_X, test_y = get_data()
+max_parameters = {'acc':0} 
 for c in CONST_C:
+        print 'C = ', c
 	for knl in CONST_KERNEL:
-		print "Training for Kernel : ", knl, " with C : ",c
+		print "     Kernel : ", knl
 		true_predict=0
 		false_predict=0
 		confidence=[]
 		ovr_classifiers = {} 
 		for j in range(1,CONST_LABELS+1):
-			print "		Training One vs rest for label :", j
+			#print "		Training One vs rest for label :", j
 			X_extract, y_extract =  get_binary_data(train_X, train_y, j)
 			classifier=SVC(C=c,kernel=knl)
 			classifier.fit(X_extract, y_extract)	
-			print "		Model trained for label :", j
+			#print "		Model trained for label :", j
 			ovr_classifiers[j] = classifier
 			confidence.append(classifier.decision_function(test_X))
                 print "         Dumping model in file : ",CONST_MODEL_DUMP 
@@ -187,4 +198,9 @@ for c in CONST_C:
                                             detailed_predictions[CONST_MAP[test_y[j]]] = {}
                                             detailed_predictions[CONST_MAP[test_y[j]]]['true'] = 1 
                                             detailed_predictions[CONST_MAP[test_y[j]]]['false'] = 0 
-                print_results(detailed_predictions)
+                acc = print_results(detailed_predictions)
+                if max_parameters['acc'] < acc :
+                    max_parameters['acc'] = acc
+                    max_parameters['kernel'] = knl
+                    max_parameters['C'] = c
+print max_parameters
