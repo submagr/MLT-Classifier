@@ -3,6 +3,7 @@ import scipy.io
 from random import shuffle
 import os
 
+CONST_DATA = 'COARSE' 
 CONST_LABELS = 6 
 CONST_NUMBER_TRAIN_IMG =  50 
 CONST_NUMBER_TEST_IMG = 50 
@@ -12,7 +13,16 @@ CONST_SIFT_FILE = '../../feature-extractor/sift-feat/feat_sift_vlfeat_mlt.mat'
 CONST_C=[100]
 CONST_KERNEL=['linear']
 CONST_FEATURE='CAFFE'
-CONST_MAP = {2:"Autorickshaw",1:"Bicycle",6:"Car",4:"Motorcycle",5:"Person",3:"Rickshaw"}
+
+if CONST_DATA == 'FINE':
+    CONST_LABELS = 6 
+    CONST_MAP = {2:"Autorickshaw",1:"Bicycle",6:"Car",4:"Motorcycle",5:"Person",3:"Rickshaw"}
+    CONST_MODEL = '../trained_model/CAFFE_FINE/ovr.pkl' 
+else : 
+    CONST_LABELS = 4 
+    CONST_MAP = {1:"Four-Wheeler",2:"Two-Wheeler",3:"Pedestritian",4:"Three-Wheeler"}
+    CONST_MODEL = '../trained_model/CAFFE_COARSE/ovr.pkl' 
+
 def load_features():
 	if CONST_FEATURE == 'CAFFE':	
 		with open(CONST_X_FILE,'r') as f:
@@ -33,7 +43,7 @@ def load_features():
 	sys.exit()
 
 
-ovr_classifiers = joblib.load('../trained_model/CAFFE/ovr.pkl')
+ovr_classifiers = joblib.load(CONST_MODEL)
 X = load_features()
 predictions=[]
 confidence = []
