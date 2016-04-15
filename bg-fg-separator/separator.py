@@ -1,88 +1,81 @@
-import numpy as np
-import imutils
-import cv2
 import sys
-def background_subtract(filename):
-	cap = cv2.VideoCapture(filename)
-	#Tried MOG and MOG2, MOG2 has better performance
+import cv2
+import imutils
+import numpy as np
+def background_subtraction(file):
+	threshdict=[]
+	framedict=[]
+	kvariable=0
+	jvariable=1
+	ivariable=1
+	kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5),(3,3))	
+	capture = cv2.VideoCapture(file)
 	fgbg = cv2.BackgroundSubtractorMOG2(history=500,varThreshold = 16)
-	kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5),(3,3))
+	#Tried MOG and MOG2, MOG2 has better performance
 
-	i = 1
-	j = 1
-	k=0
 	framedict=[]
 	threshdict=[]
-	while True:
-		ret, frame = cap.read()
-		if ret == False:
+	while 1:
+		retvalue, frame = capture.read()
+		if retvalue == False:
 			break
 
-		# resize the frame, convert it to grayscale, and blur it
-		frame = imutils.resize(frame, width=(len(frame)/3))
-		gray = cv2.blur(frame,(3,3))
-		fgmask = fgbg.apply(gray,learningRate=5.0/500)
-		#Remove Noise
-		thresh = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
-		#Fill small holes
-		thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-		thresh = cv2.threshold(thresh, 100, 255, cv2.THRESH_BINARY)[1]
+		# doing blur, resizing and then getting fgmask
+		frame = cv2.blur(frame,(3,3))
+		grayscale = imutils.resize(frame, width=(len(frame)/3))
+		fgmask = fgbg.apply(grayscale,learningRate=5.0/500)
+		#fill holes
+		threshold = cv2.morphologyEx(fgmask, cv2.MORPH_CLOSE, kernel)
+		threshold = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel)
+		#remove noise
 
 		# then find contours
 		# on thresholded image
-		threshdict.append(thresh.copy())
-		(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-		framedict.append(cnts)
+		threshdict.append(threshold.copy())
+		(contours, _) = cv2.findContours(threshold.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+		framedict.append(contours)
 		# loop over the contours
-		for c in cnts:
-			# if the contour is too small, ignore it
-			if cv2.contourArea(c) < 400:
+		for contour in contours:
+			# ignore too small contours
+			if cv2.contourArea(contour) < 450:
 				continue
 
-			# compute the bounding box for the contour, draw it on the frame,
-			# and update the text
-			(x, y, w, h) = cv2.boundingRect(c)
-			new_object = frame.copy()[y:y+h,x:x+w]
-			cv2.imwrite('./MLT-Classifier/classifier/one-vs-rest-svm/Predictor/temp_data/' + str(j) + '.png', new_object)
-			j += 1
-			text = "Occupied"
+			# compute the bounding box
+			(x, y, width, height) = cv2.boundingRect(contour)
+			new_object = frame.copy()[y:y+height,x:x+width]
+			cv2.imwrite('../classifier/one-vs-rest-svm/Predictor/temp_data/' + str(jvariable) + '.png', new_object)
+			jvariable += 1
 
 		key = cv2.waitKey(1) & 0xFF
 
-		# if the `q` key is pressed, break from the lop
-		if key == ord("q"):
-			break
 	print('Image Saving Done...Computing Features...')
-	cap.release()
+	capture.release()
 	cv2.destroyAllWindows()
 	import subprocess
 	import joblib
-	p = subprocess.Popen(['/home/cse/MLT-Classifier/classifier/one-vs-rest-svm/Predictor/prediction.sh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	p = subprocess.Popen(['../classifier/one-vs-rest-svm/Predictor/prediction.sh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	out1, err = p.communicate()
-	predictions = joblib.load('/home/cse/MLT-Classifier/classifier/one-vs-rest-svm/Predictor/predictions.dump')
-	cap = cv2.VideoCapture(filename)
+	predictions = joblib.load('../classifier/one-vs-rest-svm/Predictor/predictions.dump')
+	capture = cv2.VideoCapture(file)
 	print('features computed..showing the video now...')
-	ret, frame = cap.read()
-	i = 0
-	j = 1
-	#print cnts
-	while True:
-		ret, frame = cap.read()
-		if ret == False:
+	ivariable = 0
+	jvariable = 1
+	while 1:
+		retvalue, frame = capture.read()
+		if retvalue == False:
 			break
+		ivariable+=1
+		contours=framedict[ivariable]
 		frame = imutils.resize(frame, width=(len(frame)/3))
 		# loop over the contours
-		cnts=framedict[i]
-		i+=1
-		for c in cnts:
+		for contour in contours:
 			# if the contour is too small, ignore it
-			if cv2.contourArea(c) < 400:
+			if cv2.contourArea(contour) < 450:
 				continue
 
-			# compute the bounding box for the contour, draw it on the frame,
-			# and update the text
-			(x, y, w, h) = cv2.boundingRect(c)
-			label=predictions[str(j) + '.png']
+			# predict the label
+			(x, y, width, height) = cv2.boundingRect(contour)
+			label=predictions[str(jvariable) + '.png']
 			if label=="Four-Wheeler":
 				color=(255,0,0)
 			elif label=="Two-Wheeler":
@@ -93,31 +86,26 @@ def background_subtract(filename):
 				color=(255,255,0)
    
 			font = cv2.FONT_HERSHEY_SIMPLEX
-			if (2*y+h)/2 >125:
+			if (2*y+height)/2 >125:
 				cv2.putText(frame,label,(x,y-5), font, 0.4,color,1)
 			else:
-				cv2.putText(frame,label,(x,y+h+10), font, 0.4,color,1)
-			cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-			j += 1
-			text = "Occupied"
+				cv2.putText(frame,label,(x,y+height+10), font, 0.4,color,1)
+			jvariable+=1
+			cv2.rectangle(frame, (x, y), (x + width, y + height), color, 2)
 
-		cv2.imshow("Security Feed", frame)
-		cv2.imwrite('./MLT-Classifier/classifier/one-vs-rest-svm/Predictor/temp_data2/image' + str(i) + '.png', frame)
-		cv2.imshow("thresh",threshdict[i])
+		cv2.imshow("Final Output", frame)
+		cv2.imwrite('../classifier/one-vs-rest-svm/Predictor/temp_data2/image' + str(ivariable) + '.png', frame)
+		cv2.imshow("threshold",threshdict[ivariable])
 		cv2.waitKey(0) 
 		key = cv2.waitKey(1) & 0xFF
 
-		# if the `q` key is pressed, break from the lop
-		if key == ord("q"):
-			break
 
-	cap.release()
-	#out.release()
+	capture.release()
 	cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
 	if len(sys.argv) == 2:
-		filename = sys.argv[1]
+		file = sys.argv[1]
 
-	background_subtract(filename)
+	background_subtraction(file)

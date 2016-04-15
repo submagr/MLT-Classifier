@@ -149,7 +149,7 @@ def print_results(result):
     for label in result:
         true += result[label]['true']
         false += result[label]['false']
-        print '         Accuracy for Label : ', label,' is ', result[label]['true']*1.0/(result[label]['true']+result[label]['false'])
+        print '         Recall for Label : ', label,' is ', result[label]['true']*1.0/(result[label]['true']+result[label]['false'])
     print '     Overall Accuracy = ', true*1.0/(true+false)
     return true*1.0/(true+false)
         

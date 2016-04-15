@@ -7,4 +7,6 @@ temp*
 *.swp
 *.bak
 *.swo
+*.mov
+*.avi
 classifier/one-vs-rest-svm/trained_model/
