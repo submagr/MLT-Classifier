@@ -19,3 +19,7 @@ Following is the structure of code for usage and contribution:
 	Contains classifier and trained model
 - [feature-extractor](feature-extractor) : 
 	Contains scripts for feature extraction 
+
+## Authors
+- [Shubham Agrawal](https://github.com/submagr)
+- [Rahul Kumar Wadbude](https://github.com/warahul)
