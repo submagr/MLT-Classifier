@@ -17,5 +17,6 @@ CS771 : Vehicle Classifier for video
 - data :
 	Contains labelled data for training
 - sample video:
-[![Sample Video](results/sample-photo-1.jpg)](results/sample-video.mp4)
 
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=QxEpgOGiRo4" target="_blank"><img src="http://img.youtube.com/vi/QxEpgOGiRo4/0.jpg" 
+alt="Vehicle Pedestrian Classifier" width="240" height="180" border="10" /></a>
