@@ -16,4 +16,6 @@ CS771 : Vehicle Classifier for video
 	Contains scripts for feature extraction 
 - data :
 	Contains labelled data for training
+- sample video:
+[![Sample Video](results/sample-photo-1.jpg)](results/sample-video.mp4)
 
